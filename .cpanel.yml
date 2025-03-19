@@ -1,5 +1,5 @@
 ---
 deployment:
   tasks:
-    - export DEPLOYPATH=/home/biharsho/edunet/
+    - export DEPLOYPATH=/home/yfnynsld/edunet/
     - /bin/cp -R * $DEPLOYPATH
