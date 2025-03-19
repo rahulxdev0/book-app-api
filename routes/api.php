@@ -12,15 +12,15 @@ Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanct
 
 Route::get('/books', [BookController::class, 'index']);
     
-    // Create new book (POST)
-    Route::post('/books', [BookController::class, 'store']);
+// Create new book (POST)
+Route::post('/books', [BookController::class, 'store']);
     
-    // Get single book (GET)
-    Route::get('/books/{book}', [BookController::class, 'show']);
+// Get single book (GET)
+Route::get('/books/{book}', [BookController::class, 'show']);
     
-    // Update book (PUT/PATCH)
-    Route::put('/books/{book}', [BookController::class, 'update']);
-    Route::patch('/books/{book}', [BookController::class, 'update']);
+// Update book (PUT/PATCH)
+Route::put('/books/{book}', [BookController::class, 'update']);
+Route::patch('/books/{book}', [BookController::class, 'update']);
     
-    // Delete book (DELETE)
-    Route::delete('/books/{book}', [BookController::class, 'destroy']);
+// Delete book (DELETE)
+Route::delete('/books/{book}', [BookController::class, 'destroy']);
