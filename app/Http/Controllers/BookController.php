@@ -16,7 +16,7 @@ class BookController extends Controller
     {
         // $books = auth()->user()->books()->latest()->get();
         $books = Book::all();
-         return response()->json($books);
+        return response()->json($books);
     }
 
     /**
@@ -24,25 +24,35 @@ class BookController extends Controller
      */
     public function store(Request $request)
     {
+        if (!auth()->check()) {
+            return response()->json(['message' => 'Unauthorized'], 401);
+        }
+
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'caption' => 'required|string',
-            'image' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'rating' => 'required|integer|min:1|max:5',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
-        // Store image
-        $imagePath = $request->file('image')->store('books', 'public');
+        $imagePath = null;
+        if ($request->hasFile('image')) {
+            $file = $request->file('image');
+            if ($file->isValid()) {
+                $imagePath = $file->store('books', 'public');
+            }
+        }
 
         $book = Book::create([
             'title' => $request->title,
             'caption' => $request->caption,
             'image' => $imagePath,
             'rating' => $request->rating,
+            'user_id' => auth()->id(),
         ]);
 
         return response()->json($book, 201);
@@ -53,6 +63,10 @@ class BookController extends Controller
      */
     public function show(Book $book)
     {
+        // Optionally restrict to user's own books
+        if (auth()->check() && $book->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
         return response()->json($book);
     }
 
@@ -61,24 +75,27 @@ class BookController extends Controller
      */
     public function update(Request $request, Book $book)
     {
+        if ($book->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
 
         $validator = Validator::make($request->all(), [
             'title' => 'sometimes|string|max:255',
             'caption' => 'sometimes|string',
-            'image' => 'sometimes|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'sometimes|nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
             'rating' => 'sometimes|integer|min:1|max:5',
         ]);
 
         if ($validator->fails()) {
-            return response()->json($validator->errors(), 422);
+            return response()->json(['errors' => $validator->errors()], 422);
         }
 
         $data = $request->only(['title', 'caption', 'rating']);
 
         if ($request->hasFile('image')) {
-            // Delete old image
-            Storage::disk('public')->delete($book->image);
-            // Store new image
+            if ($book->image) {
+                Storage::disk('public')->delete($book->image);
+            }
             $data['image'] = $request->file('image')->store('books', 'public');
         }
 
@@ -92,9 +109,14 @@ class BookController extends Controller
      */
     public function destroy(Book $book)
     {
-        // Delete associated image
-        Storage::disk('public')->delete($book->image);
-        
+        if ($book->user_id !== auth()->id()) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if ($book->image) {
+            Storage::disk('public')->delete($book->image);
+        }
+
         $book->delete();
         return response()->json(null, 204);
     }
