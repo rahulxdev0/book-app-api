@@ -31,7 +31,7 @@ class BookController extends Controller
         $validator = Validator::make($request->all(), [
             'title' => 'required|string|max:255',
             'caption' => 'required|string',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
+            'image' => 'nullable|mimes:jpeg,png,jpg,gif,avif|max:2048',
             'rating' => 'required|integer|min:1|max:5',
         ]);
 

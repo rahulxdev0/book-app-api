@@ -12,6 +12,24 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    public function getAuthUser(){
+        $data = Auth::user();
+        if(!$data){
+            return response()->json([
+                'status' => false,
+                'message' => 'User not found',
+            ], 404);
+        }
+        return response()->json([
+            'status' => true,
+            'message' => 'User found',
+            'data' => [
+            'id' => $data->id,
+            'name' => $data->name,
+            'email' => $data->email,
+        ],
+        ], 200);
+    }
     public function signup(Request $request){
         $validateUser = Validator::make(
             $request->all(),
